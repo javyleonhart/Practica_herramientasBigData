@@ -138,7 +138,7 @@ Este script hay que ejecutarlo desde dentro del entorno de hive, para ello, desd
 
 Para ver si se cargo correctamente, podemos entrar a Hive y consultar la base de datos
 
-IMG2a
+![](imgs/img2-a.png)
 
 ## 3) Formatos de Almacenamiento
 
@@ -164,7 +164,7 @@ Se proporciona en los materiales el script Paso03.hql que corre dicho ejercicio 
 
 Si consultamos por la tabla gasto, verificamos que la tabla esta organizada por el IdTipoGasto que tomo de la primera DB
 
-IMG3a
+![](imgs/img3-a.png)
 
 ## 4) SQL
 
