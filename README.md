@@ -33,71 +33,138 @@ Neo4j: http://<IP_Anfitrion>:7474
 ```
 
 Para implementar ejecute
-```
-  git clone https://github.com/lopezdar222/herramientas_big_data
-  cd herramientas_big_data
-  sudo docker-compose -f docker-compose-vX.yml up -d
-```
+
+	git clone https://github.com/javyleonhart/Practica_integradora_herramientasBigData.git
+
+Una vez descargadas las herramientas que utilizaremos, entraremos al carpeta con el comando "cd"
+
+	cd herramientas_big_data
+
+Con el siguiente levantaremos el contenedor correspondiente a la tarea que ejecutaremos
+
+	sudo docker-compose -f docker-compose-vX.yml up -d
+
+Reemplazar la X con el numero deseado
 
 ## 1) HDFS
 
 Se puede utilizar el entorno docker-compose-v1.yml
 
-Copiar los archivos ubicados en la carpeta Datasets, dentro del contenedor "namenode"
+	sudo docker-compose -f docker-compose-v1.yml up -d
 
-```
-  sudo docker exec -it namenode bash
-  cd home
-  mkdir Datasets
-  exit
-  sudo docker cp <path><archivo> namenode:/home/Datasets/<archivo>
-```
+Una vez creado el contendor, entraremos al namenode(contenedor) 
+
+	sudo docker exec -it namenode bash
+	cd home
+Crearemos el directorio Datasets con el comando mkdir
+
+	mkdir Datasets
+Salimos
+	exit
+
+Y copiaremos los archivos ubicados en la carpeta Datasets, dentro del contenedor "namenode"
+
+	sudo docker cp <path><archivo> namenode:/home/Datasets/<archivo>
+
+Se puede ejecutar el archivo "Paso00" provisto en los materiales para mover todos los archivos. Para usarlo, primero hay que darle permisos con chmod
+
+	chmod u+x Paso00.sh
+
+luego ejecutarlo
+
+	./Paso00.sh
+
 
 Ubicarse en el contenedor "namenode"
 
-```
-  sudo docker exec -it namenode bash
-```
+
+	sudo docker exec -it namenode bash
+
 
 Crear un directorio en HDFS llamado "/data".
 
-```
-  hdfs dfs -mkdir -p /data
-```
+
+	hdfs dfs -mkdir -p /data
+
 
 Copiar los archivos csv provistos a HDFS:
-```
-  hdfs dfs -put /home/Datasets/* /data
-```
 
-Este proceso de creación de la carpeta data y copiado de los arhivos, debe poder ejecutarse desde un shell script.
+	hdfs dfs -put /home/Datasets/* /data
 
-Nota: Busque dfs.blocksize y dfs.replication en http://<IP_Anfitrion>:9870/conf para encontrar los valores de tamaño de bloque y factor de réplica respectivamente entre otras configuraciones del sistema Hadoop.
+
+Este proceso de creación de la carpeta data y copiado de los arhivos, debe poder ejecutarse desde Paso01.sh
+
+Para verificar si se ejecuto correctamente podemos entrar al hdfs namenoda mediante
+
+	http://<IP_Anfitrion>:9870/dfshealth.html#tab-overview
+
+En utilities/Browse the file system debe estar la carpeta data con los archivos
+
+img1-a
+img1-b
+
+### Nota: a diferencia del ejemplo propuesto, se recomienda guardar los csv en su respectiva carpeta y no todos juntos porque al usar Hive, se puede poblar una tabla con todos los csv en determinada carpeta. Por ejemplo, si tengo 2 o mas archivos de 'compra', al crear la tabla, con el comando LOCATION se pueden cargar a la tabla todos los csv presentes en dicha carpeta en vez de uno por uno con el LOCAL DATA INFILE.
 
 ## 2) Hive
 
-Se puede utilizar el entorno docker-compose-v2.yml
+Para este paso se puede utilizar el entorno docker-compose-v2.yml
 
-Crear tablas en Hive, a partir de los csv ingestados en HDFS.
+	sudo docker-compose -f docker-compose-v2.yml up -d
+
+Con el comando anterior creamos un entorno con Hive
+
+Crearemos tablas en Hive, a partir de los csv ingestados en HDFS.
 
 Para esto, se puede ubicar dentro del contenedor correspondiente al servidor de Hive, y ejecutar desdea allí los scripts necesarios
 
-```
-  sudo docker exec -it hive-server bash
-  hive
-```
+	sudo docker exec -it hive-server bash
 
-Este proceso de creación las tablas debe poder ejecutarse desde un shell script.
+Una vez dentro, con el siguiente comando ejecutamos hive
+
+	hive
+
+Aqui dentro podremos crear las tablas, poblarlas y consultarlas con comandos SQL
+
+
+Este proceso de creación y población las tablas debe poder ejecutarse desde Paso02.hql
 
 Nota: Para ejecutar un script de Hive, requiere el comando:
-```
-  hive -f <script.hql>
-```
+
+	hive -f <script.hql>
+
+Este script hay que ejecutarlo desde dentro del entorno de hive, para ello, desde la carpeta donde están los archivos
+
+	sudo docker cp ./Paso02.hql hive-server:/opt/
+
+Para ver si se cargo correctamente, podemos entrar a Hive y consultar la base de datos
+
+IMG2a
 
 ## 3) Formatos de Almacenamiento
 
 Las tablas creadas en el punto 2 a partir de archivos en formato csv, deben ser almacenadas en formato Parquet + Snappy.
-Tener en cuenta además de aplicar particiones para alguna de las tablas.
+Tener en cuenta además de aplicar particiones para alguna de las tablas. Para ello vamos a crear una segunda DB donde poblaremos las tablas a partir de las tablas de la primera DB. Primero agregamos unos comandos al CREATE TABLE
+
+>STORED AS PARQUET - Con esta linea guardamos la informacion que cargamos en la tabla como .Parquet
+>TBLPROPERTIES ('parquet.compression'='SNAPPY') - Con esta linea comprimimos el .parquet en formato Snappy
+
+Al poblar las tablas con INSERT INTO, para que tome la informacion de la primera DB escribiremos, luego de los campos:
+
+>FROM 'db1'.'tabla'
+
+Si queremos particionar la tabla, al crearla agregamos
+
+> PARTITIONED BY('columna' 'tipo de dato')
+
+Si queremos insertar la data particionada, en el INSERT agregamos
+
+> PARTITION('IdTipoGasto'<- columna '=1' <- condicion))
+
+Se proporciona en los materiales el script Paso03.hql que corre dicho ejercicio y hace unos ejercicios de particion. Recordar de pasar el archivo dentro del contenedor de Hive para poder ejecutarlo
+
+Si consultamos por la tabla gasto, verificamos que la tabla esta organizada por el IdTipoGasto que tomo de la primera DB
+
+IMG3a
 
 ## 4) SQL
 
