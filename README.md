@@ -225,7 +225,7 @@ Luego realizamo la siguiente consulta y revisaremos el tiempo
 
 	SELECT idsucursal, SUM(precio * cantidad) FROM venta GROUP BY idsucursal;
 
-img4-a
+![](imgs/img4-a.png)
 
 Luego crearemos un índice con el siguien comando
 
@@ -233,11 +233,11 @@ Luego crearemos un índice con el siguien comando
 
 Y realizaremos la misma consulta para ver cuanto tiempo tarda
 
-img4-b
+![](imgs/img4-b.png)
 
 Como podemos observar, la misma consulta redujo considerablemente el tiempo de ejecución luego de la creación del índice
 
-img4-c
+![](imgs/img4-c.png)
 
 ## 5) No-SQL
 
