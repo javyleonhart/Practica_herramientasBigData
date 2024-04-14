@@ -104,7 +104,7 @@ En utilities/Browse the file system debe estar la carpeta data con los archivos
 ![](imgs/img1-a.png)
 ![](imgs/img1-b.png)
 
-### Nota: a diferencia del ejemplo propuesto, se recomienda guardar los csv en su respectiva carpeta y no todos juntos porque al usar Hive, se puede poblar una tabla con todos los csv en determinada carpeta. Por ejemplo, si tengo 2 o mas archivos de 'compra', al crear la tabla, con el comando LOCATION se pueden cargar a la tabla todos los csv presentes en dicha carpeta en vez de uno por uno con el LOCAL DATA INFILE.
+### Nota: a diferencia del ejemplo propuesto, se recomienda guardar los csv en su respectiva carpeta y no todos juntos porque al usar Hive, se puede poblar una tabla con todos los csv en determinada carpeta. Por ejemplo, si tengo 2 o mas archivos de 'compra', al crear la tabla, con el comando LOCATION se pueden cargar a la tabla todos los csv presentes en dicha carpeta en vez de uno por uno con el LOAD DATA INPATH.
 
 ## 2) Hive
 
