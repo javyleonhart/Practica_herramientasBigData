@@ -19,6 +19,12 @@ Se pesenta un entorno Docker con Hadoop (HDFS) y la implementación de:
 
 Es importante mencionar que el entorno completo consume muchos recursos de su equipo, motivo por el cuál, se propondrán ejercicios pero con ambientes reducidos, en función de las herramientas utilizadas.
 
+### Nota: Este proyecto fue desarrollado en Windows, por lo que se generó una máquina virtual en VirtualBox con Ubuntu (Docker no es compatible con Windows) en la que se instaló Docker y se utilizó PuTTY para conectar la máquina virtual con la original con Windows. Tambien se puede utilizar WinSCP para facilitar el manejo de archivos en Ubuntu. Los links se proveen a continuacion
+
+>VirtualBox: https://www.virtualbox.org/wiki/Downloads
+>PuTTY: https://www.putty.org/
+>WinSCP: https://winscp.net/eng/download.php
+
 Ejecute `docker network inspect` en la red (por ejemplo, `docker-hadoop-spark-hive_default`) para encontrar la IP en la que se publican las interfaces de hadoop. Acceda a estas interfaces con las siguientes URL:
 
 ```
@@ -194,18 +200,44 @@ hive> CREATE INDEX index_students ON TABLE students(id)
  > AS 'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler' 
  > WITH DEFERRED REBUILD ;
 ```
+Para cambiar el índice, podemos usar el siguiente comando 
 
-ALTER INDEX index_name ON table_name [PARTITION partition_spec] REBUILD;
+>ALTER INDEX index_name ON table_name [PARTITION partition_spec] REBUILD;
 
 Ejemplo:
 ```
-hive> ALTER INDEX index_students ON students REBUILD; 
+hive> ALTER INDEX index_students ON students(idCohort) REBUILD; 
 ```
+Para eliminar el índice
 
-DROP INDEX [IF EXISTS] index_name ON table_name;
+>DROP INDEX [IF EXISTS] index_name ON table_name;
 ```
 hive> DROP INDEX IF EXISTS index_students ON students; 
 ```
+
+A modo de ejemplo, trabajaremos en la BD integrador2 y realizaremos una consulta:
+
+Primero entramos a la BD
+
+	USE integrador2;
+
+Luego realizamo la siguiente consulta y revisaremos el tiempo
+
+	SELECT idsucursal, SUM(precio * cantidad) FROM venta GROUP BY idsucursal;
+
+img4-a
+
+Luego crearemos un índice con el siguien comando
+
+	CREATE INDEX index_venta_sucursal ON TABLE venta(IdSucursal) AS 'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler' WITH DEFERRED REBUILD;
+
+Y realizaremos la misma consulta para ver cuanto tiempo tarda
+
+img4-b
+
+Como podemos observar, la misma consulta redujo considerablemente el tiempo de ejecución luego de la creación del índice
+
+img4-c
 
 ## 5) No-SQL
 
