@@ -41,7 +41,7 @@ Neo4j: http://<IP_Anfitrion>:7474
 
 Para implementar ejecute
 
-	git clone https://github.com/javyleonhart/Practica_integradora_herramientasBigData.git
+	git clone https://github.com/javyleonhart/Practica_herramientasBigData.git
 
 Una vez descargadas las herramientas que utilizaremos, entraremos al carpeta con el comando "cd"
 
