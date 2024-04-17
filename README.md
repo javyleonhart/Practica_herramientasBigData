@@ -62,24 +62,52 @@ Se puede utilizar el entorno docker-compose-v1.yml
 Una vez creado el contendor, entraremos al namenode(contenedor) 
 
 	sudo docker exec -it namenode bash
+ .
+ 
 	cd home
+ 
 Crearemos el directorio Datasets con el comando mkdir
 
 	mkdir Datasets
-Salimos
+
+Dentro de Datasets
+
+	cd Datasets
+
+ crearemos una carpeta para cada csv que vamos a exportar con mkdir.
+ 
+ 	mkdir calendario
+	mkdir canaldeventa
+	mkdir cliente
+	mkdir compra
+	mkdir data_nvo
+	mkdir empleado
+	mkdir gasto
+	mkdir producto
+	mkdir proveedor
+	mkdir sucursal
+	mkdir tipodegasto
+	mkdir venta
+ 
+ Para esto se provee el archivo Paso00.sh, el cual hay que mover dentro de la carpeta donde se quiere utilizar, en este caso Datasets, con el siguiente comando
+
+ 	sudo docker cp <path><archivo> namenode:/home/Datasets/
+
+Luego, salimos
+
 	exit
 
 Y copiaremos los archivos ubicados en la carpeta Datasets, dentro del contenedor "namenode"
 
 	sudo docker cp <path><archivo> namenode:/home/Datasets/<archivo>
 
-Se puede ejecutar el archivo "Paso00" provisto en los materiales para mover todos los archivos. Para usarlo, primero hay que darle permisos con chmod
+Se puede ejecutar el archivo "Paso01" provisto en los materiales para mover todos los archivos. Para usarlo, primero hay que darle permisos con chmod
 
-	chmod u+x Paso00.sh
+	chmod u+x Paso01.sh
 
 luego ejecutarlo
 
-	./Paso00.sh
+	./Paso01.sh
 
 
 Ubicarse en el contenedor "namenode"
@@ -98,8 +126,6 @@ Copiar los archivos csv provistos a HDFS:
 
 	hdfs dfs -put /home/Datasets/* /data
 
-
-Este proceso de creación de la carpeta data y copiado de los arhivos, debe poder ejecutarse desde Paso01.sh
 
 Para verificar si se ejecuto correctamente podemos entrar al hdfs namenoda mediante
 
