@@ -45,7 +45,7 @@ Para implementar ejecute
 
 Una vez descargadas las herramientas que utilizaremos, entraremos al carpeta con el comando "cd"
 
-	cd herramientas_big_data
+	cd Practica_herramientasBigData
 
 Con el siguiente levantaremos el contenedor correspondiente a la tarea que ejecutaremos
 
