@@ -129,7 +129,7 @@ services:
     container_name: mongodb
     ports:
       - "27017:27017"
-    image: mongo:latest
+    image: mongo:4.0.4
     environment:
       - MONGODB_USER="user"
       - MONGODB_PASS="pass"
