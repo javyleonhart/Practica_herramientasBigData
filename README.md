@@ -5,7 +5,7 @@ Durante esta practica la idea es emular un ambiente de trabajo, desde un área d
 Desde la gerencia de Infraestructura no están muy convencidos de utilizar esta tecnología por lo que no se asigno presupuesto alguna para esta iniciativa, de forma tal que por el momento no es posible utilizar un Vendor(Azure, AWS, Google) para implementar dicho entorno, es por esto que todo el MVP se deberá implementar utilizando Docker de forma tal que se pueda hacer una demo al sector de infraestructura mostrando las ventajas de utilizar tecnologías de Big Data.
 
 # Entorno Docker con Hadoop, Spark y Hive
-![](imgs/intro-a.jpeg) ![](imgs/intro-ab.png) ![](imgs/intro-b.png) ![](imgs/intro-c.jpeg)
+![](imgs/intro-a.jpeg) ![](imgs/intro-ab.png) ![](imgs/intro-b.png) ![](imgs/intro-c.jpeg) ![](imgs/intro-d.webp) ![](imgs/intro-e.png) ![](imgs/intro-f.png) ![](imgs/intro-g.png) ![](imgs/intro-h.webp)
 
 Se pesenta un entorno Docker con Hadoop (HDFS) y la implementación de:
 * Spark
@@ -265,3 +265,307 @@ Como podemos observar, la misma consulta redujo considerablemente el tiempo de e
 
 ![](imgs/img4-c.png)
 
+## 5) No-SQL
+
+Se puede utilizar el entorno docker-compose-v3.yml
+
+#### 1) HBase:
+
+Instrucciones:
+
+1- Abrimos HBase
+
+	sudo docker exec -it hbase-master hbase shell
+
+
+2- Creamos las tablas
+	
+		create 'personal','personal_data'
+
+###Nota: si tienes el siguiente error, probablemente tengas que esperar un poco para que se inicie o liberar espacio en el disco o en la RAM de la maquina
+
+![](imgs/error1.png)
+
+3- Verificamos la creación 
+
+		list 'personal'
+
+4- Insertamos información en la tabla (lo ideal es copiar uno por uno)
+
+		put 'personal',1,'personal_data:name','Juan'
+		put 'personal',1,'personal_data:city','Cordoba'
+		put 'personal',1,'personal_data:age','25'
+		put 'personal',2,'personal_data:name','Franco'
+		put 'personal',2,'personal_data:city','Lima'
+		put 'personal',2,'personal_data:age','32'
+		put 'personal',3,'personal_data:name','Ivan'
+		put 'personal',3,'personal_data:age','34'
+		put 'personal',4,'personal_data:name','Eliecer'
+		put 'personal',4,'personal_data:city','Caracas'
+
+##### Nota: evitar usar acentos o simbolos especiales por temas de codificacion
+
+5- con el siguiente comando podemos verificar la creación de los registros. El numero representa la key
+
+		get 'personal','4'
+
+![](imgs/img5-a.png)
+
+6- Desde fuera de HBase, pasar el archivo personal.csv en el namenode del cluster dentro de la carpeta home
+	
+		sudo docker cp Datasets/personal.csv namenode:/home/personal.csv
+
+luego dentro de la data de hbase del hdfs (Esta operacion desde dentro del namenode -> sudo docker exec -it namenode bash):
+
+		hdfs dfs -put home/personal.csv /hbase/data/personal.csv
+
+Verificamos que esté en la carpeta indicada
+
+![](imgs/img5-b.png)
+
+7- Salimos con exit y entramos al hbase
+
+	sudo docker exec -it hbase-master bash
+
+Cargamos la tabla importada
+		
+    hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.separator=',' -Dimporttsv.columns=HBASE_ROW_KEY,personal_data:name,personal_data:city,personal_data:age personal hdfs://namenode:9000/hbase/data/personal.csv
+
+Entramos al shell
+
+		hbase shell
+
+Verificamos que se hayan cargado los datos
+
+		scan 'personal'
+
+![](imgs/img5-c.png)
+
+Creamos una tabla de imagenes y cargamos una
+
+		create 'album','label','image'
+		put 'album','label1','label:size','10'
+		put 'album','label1','label:color','255:255:255'
+		put 'album','label1','label:text','Family album'
+		put 'album','label1','image:name','holiday'
+		put 'album','label1','image:source','/tmp/pic1.jpg'
+
+y verificamos
+
+		get 'album','label1'
+
+![](imgs/img5-d.png)
+		
+
+#### 2) MongoDB
+
+Instrucciones:
+
+1- Pasamos el iris csv y json al contenedor de mongo
+
+ 	sudo docker cp Datasets/iris.csv mongodb:/data/iris.csv
+	sudo docker cp Datasets/iris.json mongodb:/data/iris.json
+
+
+2- Entramos a mongodb
+
+	sudo docker exec -it mongodb bash
+
+3- importamos los archivos a mongo
+
+	mongoimport /data/iris.csv --type csv --headerline -d dataprueba -c iris_csv
+	mongoimport --db dataprueba --collection iris_json --file /data/iris.json --jsonArray
+
+4- entramos al shell de mongo con 'mongo' 
+
+seleccionamos la base de datos
+
+		use dataprueba
+
+mostramos las colecciones
+
+		show collections
+
+vemos el contenido de las colecciones
+		db.iris_csv.find()
+		db.iris_json.find()
+
+![](imgs/img5-e.png)
+
+##### Nota: con pretty() podemos mostrar las colecciones de forma más amigable
+
+![](imgs/img5-f.png)
+
+	
+5- Con el siguiente comando podemos exportar los archivos con otro formato o con los campos que queramos, creando otro archivo fuera del shell de mongo
+
+ 	mongoexport --db dataprueba --collection iris_csv --fields sepal_length,sepal_width,petal_length,petal_width,species --type=csv --out /data/iris_export.csv
+
+	mongoexport --db dataprueba --collection iris_json --fields sepal_length,sepal_width,petal_length,petal_width,species --type=json --out /data/iris_export.json
+
+				
+6- 	Salimos de mongo.Movemos los archivos dentro de la carpeta Mongo hacia dentro de la carpeta lib de hive
+		
+	sudo docker cp Mongo/mongo-hadoop-hive-2.0.2.jar hive-server:/opt/hive/lib/mongo-hadoop-hive-2.0.2.jar
+	sudo docker cp Mongo/mongo-hadoop-core-2.0.2.jar hive-server:/opt/hive/lib/mongo-hadoop-core-2.0.2.jar
+	sudo docker cp Mongo/mongo-hadoop-spark-2.0.2.jar hive-server:/opt/hive/lib/mongo-hadoop-spark-2.0.2.jar
+	sudo docker cp Mongo/mongo-java-driver-3.12.11.jar hive-server:/opt/hive/lib/mongo-java-driver-3.12.11.jar
+	
+	
+
+7- Dentro del namenode(), en la carpeta tmp, creamos una carpeta llamada udfs
+
+mkdir udfs
+
+y movemos los archivos a esa carpeta desde fuera del namenode
+
+	sudo docker cp Mongo/mongo-hadoop-hive-2.0.2.jar namenode:/tmp/udfs/mongo-hadoop-hive-2.0.2.jar
+	sudo docker cp Mongo/mongo-hadoop-core-2.0.2.jar namenode:/tmp/udfs/mongo-hadoop-core-2.0.2.jar
+	sudo docker cp Mongo/mongo-java-driver-3.12.11.jar namenode:/tmp/udfs/mongo-java-driver-3.12.11.jar
+	sudo docker cp Mongo/mongo-hadoop-spark-2.0.2.jar namenode:/tmp/udfs/mongo-hadoop-spark-2.0.2.jar
+	
+Entramos al hdfs por la interfaz web y en la carpeta tmp creamos el directorio 'udfs' (http://<IP_Anfitrion>:9870/dfshealth.html#tab-overview)
+
+![](imgs/img5-g.png)
+
+desde dentro del namenode los movemos al hdfs
+
+	hdfs dfs -put /tmp/udfs/* /tmp/udfs
+
+8- Movemos el iris.hql a la carpeta opt de hive 
+
+	sudo docker cp iris.hql hive-server:/opt/iris.hql
+
+y entramos dentro de hive
+
+	sudo docker exec -it hive-server bash
+
+9- Iniciamos el server que va a cargar los jar
+
+	hiveserver2
+
+Le damos permisos y ejecutamos el hql para cargar los jar y la creacion de una tabla
+
+	chmod 777 iris.hql
+	hive -f iris.hql
+	
+	
+### 3) Neo4J
+	
+	Ejemplo de búsqueda del camino más corto:
+		https://neo4j.com/docs/graph-data-science/current/algorithms/dijkstra-source-target/
+
+```	
+		CREATE (a:Location {name: 'A'}),
+			   (b:Location {name: 'B'}),
+			   (c:Location {name: 'C'}),
+			   (d:Location {name: 'D'}),
+			   (e:Location {name: 'E'}),
+			   (f:Location {name: 'F'}),
+			   (a)-[:ROAD {cost: 50}]->(b),
+			   (b)-[:ROAD {cost: 50}]->(a),
+			   (a)-[:ROAD {cost: 50}]->(c),
+			   (c)-[:ROAD {cost: 50}]->(a),
+			   (a)-[:ROAD {cost: 100}]->(d),
+			   (d)-[:ROAD {cost: 100}]->(a),
+			   (b)-[:ROAD {cost: 40}]->(d),
+			   (d)-[:ROAD {cost: 40}]->(b),
+			   (c)-[:ROAD {cost: 40}]->(d),
+			   (d)-[:ROAD {cost: 40}]->(c),
+			   (c)-[:ROAD {cost: 80}]->(e),
+			   (e)-[:ROAD {cost: 80}]->(c),
+			   (d)-[:ROAD {cost: 30}]->(e),
+			   (e)-[:ROAD {cost: 30}]->(d),
+			   (d)-[:ROAD {cost: 80}]->(f),
+			   (f)-[:ROAD {cost: 80}]->(d),
+			   (e)-[:ROAD {cost: 40}]->(f),
+			   (f)-[:ROAD {cost: 40}]->(e);
+			   
+		CALL gds.graph.project(
+			'miGrafo',
+			'Location',
+			'ROAD',
+			{
+				relationshipProperties: 'cost'
+			}
+		)
+
+		MATCH (l:Location) RETURN l
+					
+		MATCH (source:Location {name: 'A'}), (target:Location {name: 'E'})
+		CALL gds.shortestPath.dijkstra.write.estimate('miGrafo', {
+			sourceNode: source,
+			targetNode: target,
+			relationshipWeightProperty: 'cost',
+			writeRelationshipType: 'PATH'
+		})
+		YIELD nodeCount, relationshipCount, bytesMin, bytesMax, requiredMemory
+		RETURN nodeCount, relationshipCount, bytesMin, bytesMax, requiredMemory
+
+		MATCH (source:Location {name: 'A'}), (target:Location {name: 'E'})
+		CALL gds.shortestPath.dijkstra.stream('miGrafo', {
+			sourceNode: source,
+			targetNode: target,
+			relationshipWeightProperty: 'cost'
+		})
+		YIELD index, sourceNode, targetNode, totalCost, nodeIds, costs, path
+		RETURN
+			index,
+			gds.util.asNode(sourceNode).name AS sourceNodeName,
+			gds.util.asNode(targetNode).name AS targetNodeName,
+			totalCost,
+			[nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS nodeNames,
+			costs,
+			nodes(path) as path
+		ORDER BY index
+```	
+
+  Ejemplo de logística:
+    https://neo4j.com/docs/graph-data-science/current/alpha-algorithms/minimum-weight-spanning-tree/
+
+```	
+		MATCH (n:Location {name: 'A'})
+		CALL gds.alpha.spanningTree.minimum.write('miGrafo', {
+		  startNodeId: id(n),
+		  relationshipWeightProperty: 'cost',
+		  writeProperty: 'MINST',
+		  weightWriteProperty: 'writeCost'
+		})
+		YIELD preProcessingMillis, computeMillis, writeMillis, effectiveNodeCount
+		RETURN preProcessingMillis, computeMillis, writeMillis, effectiveNodeCount;		
+
+		MATCH path = (n:Location {name: 'A'})-[:MINST*]-()
+		WITH relationships(path) AS rels
+		UNWIND rels AS rel
+		WITH DISTINCT rel AS rel
+		RETURN startNode(rel).name AS source, endNode(rel).name AS destination, rel.writeCost AS cost
+		
+		MATCH (n) DETACH DELETE n
+
+		sudo docker cp producto.csv neo4j:/var/lib/neo4j/import/producto.csv
+		sudo docker cp tipo_producto.csv neo4j:/var/lib/neo4j/import/tipo_producto.csv
+		sudo docker cp cliente.csv neo4j:/var/lib/neo4j/import/cliente.csv
+		sudo docker cp venta.csv neo4j:/var/lib/neo4j/import/venta.csv
+		
+		Ver Archivo "ejemploNeo4J.txt"		
+```	
+
+#### 4) Zeppelin
+
+		HDFS:
+		En la máquina anfitrión probar WebHDFS:
+			curl "http://<IP_Anfitrion>:9870/webhdfs/v1/?op=LISTSTATUS"
+		En el interpreter:
+			En la parte de "file"
+				Variable hdfs.url = http://<IP_Anfitrion>:9870/webhdfs/v1/
+		En nuevo notebook / nueva nota:
+			%file
+			ls /
+
+		Neo4J:
+		En el interpreter
+			En la parte de "neo4J"
+				Variables 
+					neo4J.url = http://<IP_Anfitrion>:7687
+					neo4j.auth.user	= neo4j
+					neo4j.auth.password	= zeppelin
