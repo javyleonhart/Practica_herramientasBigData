@@ -284,7 +284,7 @@ Instrucciones:
 	
 		create 'personal','personal_data'
 
-###Nota: si tienes el siguiente error, probablemente tengas que esperar un poco para que se inicie o liberar espacio en el disco o en la RAM de la maquina
+### Nota: si tienes el siguiente error, probablemente tengas que esperar un poco para que se inicie o liberar espacio en el disco o en la RAM de la maquina
 
 ![](imgs/error1.png)
 
@@ -343,7 +343,7 @@ Verificamos que se hayan cargado los datos
 
 ![](imgs/img5-c.png)
 
-Creamos una tabla de imagenes y cargamos una
+Para crear una tabla de imagenes, lo podemos hacer de la siguiente manera
 
 		create 'album','label','image'
 		put 'album','label1','label:size','10'
