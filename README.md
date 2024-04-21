@@ -22,7 +22,9 @@ Es importante mencionar que el entorno completo consume muchos recursos de su eq
 ### Nota: Este proyecto fue desarrollado en Windows, por lo que se generó una máquina virtual en VirtualBox con Ubuntu (Docker no es compatible con Windows) en la que se instaló Docker y se utilizó PuTTY para conectar la máquina virtual con la original con Windows. Tambien se puede utilizar WinSCP para facilitar el manejo de archivos en Ubuntu. Los links se proveen a continuacion
 
 >VirtualBox: https://www.virtualbox.org/wiki/Downloads
+>
 >PuTTY: https://www.putty.org/
+>
 >WinSCP: https://winscp.net/eng/download.php
 
 Ejecute `docker network inspect` en la red (por ejemplo, `docker-hadoop-spark-hive_default`) para encontrar la IP en la que se publican las interfaces de hadoop. Acceda a estas interfaces con las siguientes URL:
